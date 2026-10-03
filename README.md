@@ -1,5 +1,7 @@
 # Google Photos Takeout Organizer
 
+> A local Windows app that organizes Google Photos Takeout ZIPs into a date-sorted photo and video library, preserving albums and producing an Excel audit report.
+
 Google Photos Takeout Organizer is a Windows desktop app for turning Google Photos Takeout ZIP archives into an organized photo and video library. It keeps album copies, uses the best available capture date, records every decision in an Excel workbook, and leaves the source ZIP files untouched.
 
 This is an independent community project and is not affiliated with or endorsed by Google LLC. Suggested GitHub repository name: `google-photos-takeout-organizer`.
