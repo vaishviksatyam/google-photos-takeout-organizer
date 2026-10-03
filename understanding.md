@@ -1,0 +1,15 @@
+# Understanding
+
+Google Photos Takeout exports one or more ZIP archives. Inside an archive, media is commonly under a `Takeout/Google Photos/` directory, grouped in folders that represent albums; each media item may have an adjacent JSON sidecar. A sidecar's `photoTakenTime.timestamp` records when the photo/video was taken. `creationTime.timestamp` can represent when an item was added/uploaded, so it is only used after capture-specific EXIF and filename dates. Album directories and JSON metadata must be distinguished from media files.
+
+This application accepts three locations before doing work: the folder containing ZIPs, a temporary extraction folder, and the final output folder. It extracts each ZIP into a separate child of a new temporary run directory. This keeps identically named archive paths from overwriting each other and leaves the original ZIPs untouched.
+
+Only years 1950 through 2100 are accepted. Date precedence is filename timestamp, embedded media EXIF, matching video `.thm`/`.THM` sidecar EXIF, video container/stream `creation_time` from optional `ffprobe`, Google Takeout `creationTime.timestamp`, then `photoTakenTime.timestamp`. THM matching replaces the video's extension with `.thm` or `.THM`, as `sync_image_dates.py` does. Filename formats include camera/WhatsApp names, dotted WhatsApp date-times, `DDMMYYYY` names with trailing digits, and unpadded `VideoYYYYMDD` names. A filename date without a time is treated as midnight. Filesystem modification time is not used to classify media.
+
+Each dated media file is copied into a month folder named like the current library's `2015 April` folders. Album copies are additionally put directly under the corresponding year folder, with the exported album name unchanged. Collage media also receives a copy under `<year>/collage/`. Files without any supported date are copied into `unknown date` at the output root. At each destination, a same-name, same-size file is treated as already present and skipped. A same-name file with a different size is preserved while the incoming file receives a numbered suffix.
+
+The output folder also receives `media_organization_report.xlsx`, one row per media file, recording filename, EXIF, THM, video-container, and Takeout dates, original archive path, actual destination path(s), and duplicate decision. The Google Photos date column records `creationTime` when available and falls back to `photoTakenTime`.
+
+The temporary extraction folder is retained for inspection and can grow to the size of the uncompressed exports. Users should choose a folder with sufficient space. The operation copies files rather than moving or deleting them, and does not rewrite EXIF or filesystem dates.
+
+If reading an individual ZIP member fails its CRC check, the partial extracted file is removed, the issue is added to the GUI activity log as an error, and processing continues with the next member. Windows-invalid directory-name characters are replaced during extraction; the log shows both original and sanitized member paths.
