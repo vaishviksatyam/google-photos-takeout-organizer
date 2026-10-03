@@ -10,6 +10,6 @@ Each dated media file is copied into a month folder named like the current libra
 
 The output folder also receives `media_organization_report.xlsx`, one row per media file, recording filename, EXIF, THM, video-container, and Takeout dates, original archive path, actual destination path(s), and duplicate decision. The Google Photos date column records `creationTime` when available and falls back to `photoTakenTime`.
 
-The temporary extraction folder is retained for inspection and can grow to the size of the uncompressed exports. Users should choose a folder with sufficient space. The operation copies files rather than moving or deleting them, and does not rewrite EXIF or filesystem dates.
+The temporary extraction folder must have enough space for the uncompressed exports. GoogLi removes the unique extraction run folder once processing and report generation finish, while leaving unrelated files in the selected temp folder untouched. The operation copies media rather than moving it and does not rewrite EXIF or filesystem dates.
 
 If reading an individual ZIP member fails its CRC check, the partial extracted file is removed, the issue is added to the GUI activity log as an error, and processing continues with the next member. Windows-invalid directory-name characters are replaced during extraction; the log shows both original and sanitized member paths.

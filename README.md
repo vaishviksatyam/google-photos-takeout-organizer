@@ -66,7 +66,7 @@ python main.py
 In the window, choose all three locations before starting:
 
 1. **ZIP folder**: the folder containing Takeout ZIP files. Subfolders are searched too.
-2. **Temporary folder**: a location with enough free space for the uncompressed archives. A unique `takeout_import_*` folder is created for each run and retained for inspection.
+2. **Temporary folder**: a location with enough free space for the uncompressed archives. GoogLi creates a unique `takeout_import_*` folder and deletes that run's extracted data after processing. Other files in the selected temporary folder are left untouched.
 3. **Output folder**: the organized library and Excel report destination.
 
 The activity log reports which ZIP/member is being extracted and which media file is being processed. Recoverable errors, such as a damaged ZIP member or a renamed Windows-invalid archive path, are marked `[ERROR]` or logged with the original and sanitized paths; processing continues where possible.

@@ -419,6 +419,15 @@ class TakeoutOrganizerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Not a valid ZIP"):
             extract_archives([invalid_zip], self.root / "tmp")
 
+    def test_fatal_extraction_failure_cleans_partial_run_folder(self):
+        archive_directory = self.root / "archives"
+        archive_directory.mkdir()
+        (archive_directory / "invalid.zip").write_text("not a ZIP", encoding="utf-8")
+        temporary = self.root / "tmp"
+        with self.assertRaisesRegex(ValueError, "Not a valid ZIP"):
+            organize_takeout(archive_directory, temporary, self.root / "output")
+        self.assertEqual(list(temporary.iterdir()), [])
+
     def test_bad_crc_member_is_logged_and_later_media_is_processed(self):
         archive_path = self.root / "partially-corrupt.zip"
         with zipfile.ZipFile(archive_path, "w") as archive:
@@ -451,10 +460,15 @@ class TakeoutOrganizerTests(unittest.TestCase):
             archive.writestr("Takeout/Google Photos/2026 - trip/metadata.json", "{}")
             archive.writestr("Takeout/Google Photos/2026 - trip/no-date.jpg", b"unknown")
         output = self.root / "output"
+        temporary = self.root / "temporary"
+        temporary.mkdir()
+        unrelated_temp_file = temporary / "keep-this-file.txt"
+        unrelated_temp_file.write_text("not created by GoogLi", encoding="utf-8")
         existing_month_file = output / "2026" / "2026 October" / "photo.jpg"
         existing_month_file.parent.mkdir(parents=True)
         existing_month_file.write_bytes(b"other")
-        result = organize_takeout(self.root, self.root / "temporary", output)
+        messages = []
+        result = organize_takeout(self.root, temporary, output, messages.append)
         month = output / "2026" / "2026 October"
         album = output / "2026" / "2026 - trip"
         self.assertEqual(result.archives, 1)
@@ -469,6 +483,8 @@ class TakeoutOrganizerTests(unittest.TestCase):
         self.assertFalse((month / "metadata.json").exists())
         self.assertTrue(archive_path.exists())
         self.assertEqual(existing_month_file.read_bytes(), b"other")
+        self.assertEqual(list(temporary.iterdir()), [unrelated_temp_file])
+        self.assertTrue(any(message.startswith("Cleaning temporary extraction data:") for message in messages))
         self.assertTrue(result.report_path.is_file())
         workbook = load_workbook(result.report_path, read_only=True)
         try:

@@ -13,7 +13,7 @@ Provide a desktop Python application for organizing Google Photos Takeout ZIP ex
 ## Functional requirements
 
 - Search the selected ZIP folder recursively for `.zip` files.
-- Extract every archive into a unique run folder under the selected temporary folder. Never delete or modify source archives; keep archive contents isolated to prevent same-path overwrites.
+- Extract every archive into a unique run folder under the selected temporary folder. Delete that run folder after processing, including on fatal extraction errors. Never delete or modify source archives or unrelated files in the selected temporary folder; keep archive contents isolated to prevent same-path overwrites.
 - Reject unsafe archive paths that could extract outside the temporary folder.
 - Replace Windows-invalid characters in ZIP path components during extraction and log the original and sanitized names.
 - If an individual ZIP member has a CRC/read error, log it as an error, remove any partial extracted file, and continue with remaining members and archives.

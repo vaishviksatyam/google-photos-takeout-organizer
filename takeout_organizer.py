@@ -144,12 +144,16 @@ def extract_archives(
     temp_directory.mkdir(parents=True, exist_ok=True)
     run_directory = Path(tempfile.mkdtemp(prefix="takeout_import_", dir=temp_directory))
     extracted_roots = []
-    for index, archive_path in enumerate(archive_paths, start=1):
-        archive_root = run_directory / f"{index:04d}"
-        if progress_callback:
-            progress_callback(f"Extracting ZIP {index}/{len(archive_paths)}: {archive_path}")
-        _extract_archive(archive_path, archive_root, progress_callback)
-        extracted_roots.append(archive_root)
+    try:
+        for index, archive_path in enumerate(archive_paths, start=1):
+            archive_root = run_directory / f"{index:04d}"
+            if progress_callback:
+                progress_callback(f"Extracting ZIP {index}/{len(archive_paths)}: {archive_path}")
+            _extract_archive(archive_path, archive_root, progress_callback)
+            extracted_roots.append(archive_root)
+    except Exception:
+        shutil.rmtree(run_directory, ignore_errors=True)
+        raise
     return extracted_roots
 
 
@@ -377,13 +381,25 @@ def organize_takeout(
     archives = discover_archives(archive_directory)
     log_progress(f"Found {len(archives)} ZIP archive(s).")
     extracted_roots = extract_archives(archives, temp_directory, log_progress)
-    source_archives = dict(zip(extracted_roots, archives))
-    result = organize_extracted(extracted_roots, output_directory, source_archives, log_progress)
-    result.archives = len(archives)
-    result.errors = errors
-    result.report_path = write_report(result, output_directory)
-    log_progress(f"Saved Excel report: {result.report_path}")
-    return result
+    run_directory = extracted_roots[0].parent
+    result = None
+    try:
+        source_archives = dict(zip(extracted_roots, archives))
+        result = organize_extracted(extracted_roots, output_directory, source_archives, log_progress)
+        result.archives = len(archives)
+        result.errors = errors
+        result.report_path = write_report(result, output_directory)
+        log_progress(f"Saved Excel report: {result.report_path}")
+        return result
+    finally:
+        log_progress(f"Cleaning temporary extraction data: {run_directory}")
+        try:
+            shutil.rmtree(run_directory)
+        except OSError as error:
+            message = f"[ERROR] Could not clean temporary extraction data '{run_directory}': {error}"
+            if result is not None:
+                result.errors.append(message)
+            log_progress(message)
 
 
 class OrganizerWindow:

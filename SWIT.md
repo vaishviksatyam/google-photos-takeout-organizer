@@ -13,7 +13,7 @@ python -m unittest discover -s tests -v
 1. Start `python main.py` and confirm the three folder selectors and activity log are visible.
 2. Select a folder containing a small synthetic or disposable Takeout ZIP, a new temporary folder, and a new output folder.
 3. Click **Organize Takeout**. Confirm the window remains responsive and reports completion.
-4. Confirm the activity log names each ZIP and extracted member, then names each media file as it is processed. Confirm the temp folder contains one run folder per operation and one isolated directory per ZIP.
+4. Confirm the activity log names each ZIP and extracted member, then names each media file as it is processed. During the run, extraction uses an isolated run directory; after completion, that run directory should be removed while unrelated temp-folder files remain.
 5. Confirm dated files are copied under `YEAR/YEAR Month`, album files under `YEAR/album name`, undated files under `unknown date`, and `media_organization_report.xlsx` appears in the output; confirm the source ZIP is unchanged.
 6. Run a second time with the same output and confirm same-name/same-size files are skipped and noted in the report, while same-name/different-size files receive numbered names.
 7. Try an archive containing a folder name with a Windows-invalid character such as `:`; confirm extraction logs the sanitized name and continues.
